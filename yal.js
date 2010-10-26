@@ -12,41 +12,39 @@
  * This file defines a lisp interpreter
  */
 
+try {
+    dojo.provide("yal-js.yal");
+} catch (e) {
+    // we're not in dojo anymore
+}
 
 var yal={};
 
 (function ($) {
 
-$["Stream"]=function () {}
-$["Stream"].prototype={};
-
-$["InputStream"] = function () {
-    this["read-char"]=true;
-}
-$["InputStream"].prototype = new $["Stream"]();
-
 $["StringInputStream"] = function (source) {
-    var str=source;
-    var pos=0;
-    var len=source.length;
-    this["eof"]=false;
-    this["eof-value"]=-1;
-    this["eof-value-p"]=function (value) {
+    this["str"]=source;
+    this["pos"]=0;
+    this["len"]=source.length;
+};
+$["StringInputStream"].prototype={
+    "eof" : false,
+    "eof-value" : -1,
+    "eof-value-p" : function (value) {
         return (value === this["eof-value"]);
-    };
-    this["read-char"]=function () {
-        this["eof"] = (pos >= len);
-        return this["eof"] ? this["eof-value"]
-                          : str[pos++];
-    };
-    this["peek-char"]=function () {
-        var eof= ( pos+1 >= len );
+    },
+    "read-char" : function () {
+        this["eof"] = (this.pos >= this.len);
+        var char=this["peek-char"]();
+        this.pos=this.pos+1;
+        return char;
+    },
+    "peek-char" : function () {
+        var eof= ( this.pos >= this.len );
         return eof ? this["eof-value"]
-                   : str[pos+1];
-    };
-}
-$["StringInputStream"].prototype=new $["InputStream"]();
+                   : this.str[this.pos];
+    }
+};
 
 
 })(yal);
-

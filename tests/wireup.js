@@ -7,10 +7,12 @@ function TF(name,setup,test,teardown) {
     this["tearDown"]=teardown||function() {};
 }
 
-function TFRunGroup() {
+function TFRunGroup(obj) {
     var group=[];
-    for(var i=0;i<arguments.length;i+=2) {
-        group.push(new TF(arguments[i],null,arguments[i+1],null));
+    for(var p in obj) {
+        if(obj.hasOwnProperty(p)) {
+            group.push(new TF(p,null,obj[p],null));
+        }
     }
     return group;
 }

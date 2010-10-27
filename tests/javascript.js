@@ -15,19 +15,20 @@ var testValue=1;
 var testObj={testValue: 2};
 
 doh.register("tests.javascript",
-    new TFRunGroup(
+    new TFRunGroup({
 
-        "direct",
+        "direct":
             function () {doh.assertEqual(1,controltest());} ,
-        "call",
+        "call":
             function() {doh.assertEqual(2, controltest.call(testObj) );},
-        "apply",
+        "apply":
             function() {doh.assertEqual(2, controltest.apply(testObj) );},
-        "eval direct",
+        "eval direct":
             function () {doh.assertEqual(1,evaltest());} ,
-        "eval call",
+        "eval call":
             function() {doh.assertEqual(2, evaltest.call(testObj) );},
-        "eval apply",
+        "eval apply":
             function() {doh.assertEqual(2, evaltest.apply(testObj) );}
+    }
         ));
 

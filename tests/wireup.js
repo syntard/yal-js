@@ -9,8 +9,8 @@ function TF(name,setup,test,teardown) {
 
 function TFRunGroup() {
     var group=[];
-    for(var i=0;i<arguments.length;i++) {
-        group.push(new TF(arguments[i][0],null,arguments[i][1],null));
+    for(var i=0;i<arguments.length;i+=2) {
+        group.push(new TF(arguments[i],null,arguments[i+1],null));
     }
     return group;
 }

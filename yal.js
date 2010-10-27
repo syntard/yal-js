@@ -23,7 +23,7 @@ var yal={};
 (function ($) {
 
 $["StringInputStream"] = function (source) {
-    this["str"]=source;
+    this["str"]=source||"";
     this["pos"]=0;
     this["len"]=source.length;
 };
@@ -46,5 +46,27 @@ $["StringInputStream"].prototype={
     }
 };
 
+$["*standard-input*"]={};
+
+$["*readtable*"]={};
+
+$["make-string-input-stream"] = function (source, start, end) {
+    var s=source||"";
+    var n=start||0;
+    var m=end||str.length;
+    return new $["StringInputStream"](s.substring(n,m));
+}
+
+$["get-macro-character"] = function (char, readtable) {
+    var t=readtable || $["*readtable*"];
+    return t[char];
+}
+
+$["read"] = function(input_stream, eof_error_p, eof_value, recursive_p) {
+    var stream = input_stream || $["*standard-input*"];
+    var eofp = eof_error_p || true;
+    var eofv = eof_value || null;
+    var recp = recursive_p || false;
+}
 
 })(yal);

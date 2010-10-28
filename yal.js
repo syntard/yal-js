@@ -18,55 +18,121 @@ try {
     // we're not in dojo anymore
 }
 
-var yal={};
+var yal = {};
 
 (function ($) {
 
-$["StringInputStream"] = function (source) {
-    this["str"]=source||"";
-    this["pos"]=0;
-    this["len"]=source.length;
-};
-$["StringInputStream"].prototype={
-    "eof" : false,
-    "eof-value" : -1,
-    "eof-value-p" : function (value) {
-        return (value === this["eof-value"]);
-    },
-    "read-char" : function () {
-        this["eof"] = (this.pos >= this.len);
-        var char=this["peek-char"]();
-        this.pos=this.pos+1;
-        return char;
-    },
-    "peek-char" : function () {
-        var eof= ( this.pos >= this.len );
-        return eof ? this["eof-value"]
-                   : this.str[this.pos];
+    $["StringInputStream"] = function (source) {
+        this["str"] = source || "";
+        this["pos"] = 0;
+        this["len"] = source.length;
+    };
+    $["StringInputStream"].prototype = {
+        "eof" : false,
+        "eof-value" : -1,
+        "eof-value-p" : function (value) {
+            return (value === this["eof-value"]);
+        },
+        "read-char" : function () {
+            this["eof"] = (this.pos >= this.len);
+            var char = this["peek-char"]();
+            this.pos = this.pos + 1;
+            return char;
+        },
+        "peek-char" : function () {
+            var eof = (this.pos >= this.len);
+            return eof ? this["eof-value"]
+                       : this.str[this.pos];
+        },
+        "at-eof-p"  : function () {
+            return this["eof-value-p"](this["peek-char"]());
+        }
+    };
+
+    $["*standard-input*"] = {};
+
+    $["*readtable*"] = {
+        " "     : " ",
+        "\t"    : " ",
+        "\n"    : " ",
+        "\r"    : " ",
+        "#"     : "dispatch",
+        "#\\"   : null
+    };
+
+    $["make-string-input-stream"] = function (source, start, end) {
+        var s = source || "",
+            n = start || 0,
+            m = end || str.length;
+        return new $["StringInputStream"](s.substring(n, m));
+    };
+
+    $["get-macro-character"] = function (char, readtable) {
+        var t = readtable || $["*readtable*"];
+        return t[char];
+    };
+    function EndsWithinObject() {};
+    EndsWithinObject.prototype = Error;
+
+    $.exceptions = {};
+    function makeException () {
+        for (var i=0; i<arguments.length; i++) {
+            eval("function "+arguments[i]+" () {}; $.exceptions[arguments[i]] = " + arguments[i] + ";");
+            $.exceptions[arguments[i]].prototype = Error;
+        }
     }
-};
+    makeException("EndsWithinObject","StreamReachedEnd");
 
-$["*standard-input*"]={};
+    $["read"] = function (input_stream, eof_error_p, eof_value, recursive_p) {
+        var stream = input_stream || $["*standard-input*"],
+            eofp = eof_error_p === false ? false : true,
+            eofv = eof_value || null,
+            recp = recursive_p || false,
+            str = "",
+            rt = $["*readtable*"],
+            char = "",
+            cont = null,
+            rc = function () { return stream["read-char"](); },
+            pc = function () { return stream["peek-char"](); },
+            atp = function () { return stream["at-eof-p"](); },
+            wcp = function () {
+                return rt[pc()] === " ";
+            },
+            rtf, mc, mcf,
+            nint = 0,
+            nfloat = 0;
+        while (wcp()) {
+            rc();
+        }
 
-$["*readtable*"]={};
-
-$["make-string-input-stream"] = function (source, start, end) {
-    var s=source||"";
-    var n=start||0;
-    var m=end||str.length;
-    return new $["StringInputStream"](s.substring(n,m));
-}
-
-$["get-macro-character"] = function (char, readtable) {
-    var t=readtable || $["*readtable*"];
-    return t[char];
-}
-
-$["read"] = function(input_stream, eof_error_p, eof_value, recursive_p) {
-    var stream = input_stream || $["*standard-input*"];
-    var eofp = eof_error_p || true;
-    var eofv = eof_value || null;
-    var recp = recursive_p || false;
-}
+        if (atp()) {
+            if (recp) {
+                throw new $.exceptions.EndsWithinObject("ends within object");
+            }
+            if (eofp) {
+                throw new $.exceptions.StreamReachedEnd("stream reached its end");
+            }
+            return eofv;
+        }
+        char = pc();
+        rtf = rt[char];
+        if (rtf === "dispatch") {
+            mc = rc();
+            mcf = rt[char + mc];
+            return mcf(stream, char, mc);
+        }
+        if (typeof rt === "function") {
+            return rt(stream, char);
+        }
+        while (! (atp() || wcp())) {
+            str = str + rc();
+        }
+        nint = parseInt(str);
+        nfloat = parseFloat(str);
+        if (isNaN(nfloat)) {
+            return ["symbol", str];
+        }
+        return Math.abs(nfloat) > Math.abs(nint) ? nfloat : nint;
+    };
 
 })(yal);

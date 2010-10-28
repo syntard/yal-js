@@ -1,8 +1,6 @@
 dojo.provide("yal-js.tests.StringInputStream");
 
-
-var stream = new yal["StringInputStream"]("abcd");
-doh.register("tests.StringInputStream",
+doh.registerGroup("tests.StringInputStream",
     new TFRunGroup({
         "create":
             function () {
@@ -27,6 +25,10 @@ doh.register("tests.StringInputStream",
                 doh.assertEqual("d", stream["read-char"]());
                 doh.assertTrue(stream["eof-value-p"](stream["read-char"]()));
             },
+        "at-eof-p":
+            function () {
+                doh.t(stream["at-eof-p"]());
+            },
         "make-string-input-stream":
             function () {
                 var stream = yal["make-string-input-stream"]("12345", 2, 4);
@@ -34,8 +36,9 @@ doh.register("tests.StringInputStream",
                 stream["read-char"]();
                 doh.assertTrue(stream["eof-value-p"](stream["read-char"]()));
             }
-        }
-
-    )
+    }),
+    function () {
+        stream = new yal["StringInputStream"]("abcd");
+    }
 );
 
